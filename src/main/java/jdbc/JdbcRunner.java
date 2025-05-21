@@ -22,6 +22,24 @@ public class JdbcRunner {
         return executeUpdate(sql);
     }
 
+    public boolean addQuestion(Message infoFromMessage) {
+        String username = infoFromMessage.getFrom().getUserName();
+        String question = infoFromMessage.getText();
+        String sql = """
+                INSERT INTO questions (teid, question)
+                VALUES ((SELECT id FROM tests WHERE usid = (SELECT id FROM users WHERE username = '%s')), '%s');
+                """.formatted(username, question);
+        return executeUpdate(sql);
+    }
+
+    public boolean addAnswers(String question, String answer1_true, String answer2,String answer3,String answer4) {
+        String sql = """
+                INSERT INTO answers (id, answer1_true, answer2, answer3, answer4)
+                VALUES ((SELECT id FROM questions WHERE question = '%s'), '%s', '%s', '%s', '%s');
+                """.formatted(question, answer1_true, answer2, answer3, answer4);
+        return executeUpdate(sql);
+    }
+
     public boolean addTest(Message infoFromMessage) {
         String username = infoFromMessage.getFrom().getUserName();
         String sql = """

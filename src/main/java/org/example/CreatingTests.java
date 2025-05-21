@@ -1,17 +1,68 @@
 package org.example;
 
+import java.util.*;
 import jdbc.JdbcRunner;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class CreatingTests extends Bot {
+    static String[] questionsAndAnswer = new String[5];
+    static int i;
+
+
+    FSM state = new FSM();
     JdbcRunner jdbc = new JdbcRunner();
-    Message infoFromMessage;
-    Long chatId = infoFromMessage.getChatId();
 
     public void startCreating(Message infoFromMessage) {
-        this.infoFromMessage = infoFromMessage;
         if (jdbc.addTest(infoFromMessage)) {
-            send(chatId, "Готово, теперь следует добавить вопросы");
+            Long chatId = infoFromMessage.getChatId();
+            send(chatId, "Готово, теперь напиши вопрос (максимум 128 символов)");
+            state.setState(chatId, FSM.UserState.WAITING_QUESTION);
         }
     }
+
+    public void continueCreating(Message inf) {
+        Long chatId = inf.getChatId();
+        var stateNow = state.getState(chatId);
+
+        if (inf.getText().equals("/done")){
+            state.setState(chatId, FSM.UserState.IDLE);
+        }
+        switch (stateNow) {
+            case WAITING_QUESTION -> {
+                jdbc.addQuestion(inf);
+                questionsAndAnswer[0] = inf.getText();
+                state.setState(chatId, FSM.UserState.WAITING_ANSWERS);
+                send(chatId, "Теперь отправь мне правильный ответ на вопрос (максимум 64 символа)");
+            }
+            case WAITING_ANSWERS -> {
+                switch (i) {
+                    case 1 -> {
+                        i++;
+                        questionsAndAnswer[1] = inf.getText();
+                        send(chatId,"Супер, теперь отправь мне второй вариант ответа");
+                    }
+                    case 2 -> {
+                        i++;
+                        questionsAndAnswer[2] = inf.getText();
+                        send(chatId,"Супер, теперь отправь мне третий вариант ответа");
+                    }
+                    case 3 -> {
+                        i++;
+                        questionsAndAnswer[3] = inf.getText();
+                        send(chatId,"Супер, теперь отправь мне четвертый вариант ответа");
+                    }
+                    case 4 -> {
+                        i++;
+                        questionsAndAnswer[4] = inf.getText();
+                        jdbc.addAnswers(questionsAndAnswer[0], questionsAndAnswer[1], questionsAndAnswer[2], questionsAndAnswer[3], questionsAndAnswer[4]);
+                        state.setState(chatId, FSM.UserState.WAITING_QUESTION);
+                        i = 0;
+                        Arrays.fill(questionsAndAnswer, null);
+                        send(chatId, "если хочешь завершить создание теста отправь /done");
+                    }
+                }
+            }
+        }
+    }
+
 }

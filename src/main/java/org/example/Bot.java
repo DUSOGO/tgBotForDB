@@ -49,7 +49,6 @@ public class Bot extends TelegramLongPollingBot {
                 .chatId(chatId.toString()) //Who are we sending a message to
                 .text(what).build();    //Message content
         try {
-            System.out.println("method send is works");
             execute(sm);                    //Actually sending the message
         } catch (TelegramApiException e) {
             System.out.println("in method send give you error");

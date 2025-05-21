@@ -11,19 +11,23 @@ public class Distribution extends Bot {
 
 
     public void messageProcessing(Message infoFromMessage, Update update) {
-        System.out.println("messageProcessing has been called");
         String msg = infoFromMessage.getText();
         chatId = infoFromMessage.getChatId();
+        FSM fsm = new FSM();
 
-        switch (msg) {
-            case "/start" -> start();
-            case "/start_using" -> saveUser(infoFromMessage);
-            case "/help" -> listOfCommands();
-            case "/create" -> createTest(infoFromMessage);
-            case "/take" -> takeTheTest(infoFromMessage);
-            case "/gamble" -> gamble(chatId, update);
-            default ->
-                    send(chatId, "Я не понял. Мне нужна команда. Посмотреть список комманд /help <-(кликабельно(можно нажать))");
+        if (fsm.getState(chatId) == FSM.UserState.IDLE) {
+            switch (msg) {
+                case "/start" -> start();
+                case "/start_using" -> saveUser(infoFromMessage);
+                case "/help" -> listOfCommands();
+                case "/create" -> createTest(infoFromMessage, false);
+                case "/take" -> takeTheTest(infoFromMessage);
+                case "/gamble" -> gamble(chatId, update);
+                default ->
+                        send(chatId, "Я не понял. Мне нужна команда. Посмотреть список команд /help <-(кликабельно(можно нажать))");
+            }
+        } else {
+            createTest(infoFromMessage, true);
         }
     }
 
@@ -57,9 +61,10 @@ public class Distribution extends Bot {
     }
 
 
-    private void createTest(Message infoFromMessage) {
+    private void createTest(Message infoFromMessage, boolean isBegin) {
         CreatingTests c = new CreatingTests();
-        c.startCreating(infoFromMessage);
+        if (!isBegin) {c.startCreating(infoFromMessage);}
+        c.continueCreating(infoFromMessage);
     }
 
     private void listOfCommands() {

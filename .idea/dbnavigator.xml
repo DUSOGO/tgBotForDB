@@ -54,7 +54,7 @@ question varchar(128) not null unique
 
 
 create table answers (
-id int references questions(id) on delete cascade,
+id int references questions(id) on delete cascade unique,
 answer1_true varchar(64) not null,
 answer2 char(64) not null,
 answer3 char(64) not null,
