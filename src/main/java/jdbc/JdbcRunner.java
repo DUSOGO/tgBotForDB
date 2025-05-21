@@ -43,13 +43,18 @@ public class JdbcRunner {
     public boolean addTest(Message infoFromMessage) {
         String username = infoFromMessage.getFrom().getUserName();
         String sql = """
-                INSERT INTO tests (usid)
-                VALUES ((SELECT id FROM users WHERE username = '%s'));
-                """.formatted(username);
+            INSERT INTO tests (usid)
+            VALUES ((SELECT id FROM users WHERE username = '%s'));
+            """.formatted(username);
 
         if (!executeUpdate(sql)) { // if user don't have test
             deleteTest(infoFromMessage);
-            addTest(infoFromMessage);  //Re-call after deletion
+            // Попробовать добавить второй раз, но не рекурсивно!
+            if (!executeUpdate(sql)) {
+                // Здесь можно залогировать ошибку или вернуть false
+                System.out.println("Не удалось создать тест даже после удаления старого!");
+                return false;
+            }
         }
 
         return true;

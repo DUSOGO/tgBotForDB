@@ -26,13 +26,15 @@ public class CreatingTests extends Bot {
 
         if (inf.getText().equals("/done")){
             state.setState(chatId, FSM.UserState.IDLE);
+            send(chatId, "Успешно!");
         }
         switch (stateNow) {
             case WAITING_QUESTION -> {
                 jdbc.addQuestion(inf);
                 questionsAndAnswer[0] = inf.getText();
-                state.setState(chatId, FSM.UserState.WAITING_ANSWERS);
                 send(chatId, "Теперь отправь мне правильный ответ на вопрос (максимум 64 символа)");
+                state.setState(chatId, FSM.UserState.WAITING_ANSWERS);
+                i++;
             }
             case WAITING_ANSWERS -> {
                 switch (i) {
@@ -52,7 +54,6 @@ public class CreatingTests extends Bot {
                         send(chatId,"Супер, теперь отправь мне четвертый вариант ответа");
                     }
                     case 4 -> {
-                        i++;
                         questionsAndAnswer[4] = inf.getText();
                         jdbc.addAnswers(questionsAndAnswer[0], questionsAndAnswer[1], questionsAndAnswer[2], questionsAndAnswer[3], questionsAndAnswer[4]);
                         state.setState(chatId, FSM.UserState.WAITING_QUESTION);
