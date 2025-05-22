@@ -27,11 +27,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        //var infoFromMessage = update.getMessage();
-        //chatId = infoFromMessage.getChatId();
-
         Distribution distribution = new Distribution();
-        //distribution.messageProcessing(infoFromMessage, update);
 
         // Проверяем наличие текстового сообщения
         if (update.hasMessage()) {

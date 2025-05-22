@@ -14,8 +14,9 @@ public class Distribution extends Bot {
         String msg = infoFromMessage.getText();
         chatId = infoFromMessage.getChatId();
         FSM fsm = new FSM();
+        var state = fsm.getState(chatId);
 
-        if (fsm.getState(chatId) == FSM.UserState.IDLE) {
+        if (state == FSM.UserState.IDLE) {
             switch (msg) {
                 case "/start" -> start();
                 case "/start_using" -> saveUser(infoFromMessage);
@@ -26,16 +27,14 @@ public class Distribution extends Bot {
                 default ->
                         send(chatId, "Я не понял. Мне нужна команда. Посмотреть список команд /help <-(кликабельно(можно нажать))");
             }
-        } else {
+        } else if (state == FSM.UserState.WAITING_QUESTION || state == FSM.UserState.WAITING_ANSWERS){
             createTest(infoFromMessage, true);
         }
     }
 
     private void start() {
-        System.out.println("start is worked");
-        send(chatId, "Приветствую, тут в дальнейшем будет что-то, а пока можешь покрутить слоты /gamble.");
+        send(chatId, "");
         send(chatId, "Вообще по задумке тут можно будет создать тест и делиться ими, и узнавать, сколько правильных ответов");
-
     }
 
     private void saveUser(Message infoFromMessage) { // save in database
@@ -50,12 +49,8 @@ public class Distribution extends Bot {
     }
 
     public void handleCallback(CallbackQuery callbackQuery) {
-        System.out.println("Handling callback query");
-
         long chatId = callbackQuery.getMessage().getChatId();
         String callbackData = callbackQuery.getData();
-
-        System.out.println("Callback data: " + callbackData);
 
         gamble(chatId, callbackData);
     }
@@ -63,8 +58,11 @@ public class Distribution extends Bot {
 
     private void createTest(Message infoFromMessage, boolean isBegin) {
         CreatingTests c = new CreatingTests();
-        if (!isBegin) {c.startCreating(infoFromMessage);}
-        c.continueCreating(infoFromMessage);
+        if (!isBegin) {
+            c.startCreating(infoFromMessage);
+        } else {
+            c.continueCreating(infoFromMessage);
+        }
     }
 
     private void listOfCommands() {
@@ -73,18 +71,17 @@ public class Distribution extends Bot {
                 /help (этой ты меня и вызвал)
                 /gamble
                 /start_using (типа регистрация)
+                /create
                 """);
     }
 
 
     private void gamble(Long chatId, Update update) {//my edited 2 years old code
-        System.out.println("gamble in distribution is worked");
         Gamble gamba = new Gamble(chatId, update);
         gamba.selectGameMessage();
     }
 
     private void gamble(long chatId, String callbackData) {
-        System.out.println("gamble in distribution is worked");
         Gamble gamba = new Gamble(chatId);
         gamba.gamba1(callbackData);
     }

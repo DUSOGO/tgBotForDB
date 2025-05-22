@@ -27,6 +27,7 @@ public class CreatingTests extends Bot {
         if (inf.getText().equals("/done")){
             state.setState(chatId, FSM.UserState.IDLE);
             send(chatId, "Успешно!");
+            return;
         }
         switch (stateNow) {
             case WAITING_QUESTION -> {
@@ -59,7 +60,8 @@ public class CreatingTests extends Bot {
                         state.setState(chatId, FSM.UserState.WAITING_QUESTION);
                         i = 0;
                         Arrays.fill(questionsAndAnswer, null);
-                        send(chatId, "если хочешь завершить создание теста отправь /done");
+                        send(chatId, "(если хочешь завершить создание теста отправь /done)");
+                        send(chatId, "Отправь следующий вопрос:");
                     }
                 }
             }

@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Optional;
 
 public class JdbcRunner {
 
@@ -71,6 +72,26 @@ public class JdbcRunner {
         executeUpdate(sql);
     }
 
+    public Optional<Integer> getTestIdByChatId(long chatId) {
+        String sql = """
+            SELECT t.id
+            FROM tests t
+            JOIN users u ON t.usid = u.id
+            WHERE u.chat_id = %d
+            """.formatted(chatId);
+
+        try (var conn = ConnectionManager.open();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return Optional.of(rs.getInt("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
     public void шmain() {
         String sql = """
                 select * from users
@@ -79,11 +100,8 @@ public class JdbcRunner {
              var statement = connection.prepareStatement(sql)) {
             var result = statement.executeQuery();
             while (result.next()) {
-                System.out.println(result.getString("first_name"));
-                System.out.println();
             }
         } catch (SQLException e) {
-            System.out.println("ПИЗДОС! МАЛАДЕЦ, ВСЁ НАКРЫЛОСЬ!!!!!!"); //error message
             throw new RuntimeException(e);
         }
     }
@@ -97,8 +115,6 @@ public class JdbcRunner {
             }
             return false;
         } catch (SQLException e) {
-            System.out.println("ПИЗДОС! МАЛАДЕЦ, ВСЁ НАКРЫЛОСЬ!!!!!! Не получилось добавить пользователя"); //error message
-            System.out.println(e.getMessage());
             return false;
         }
     }
