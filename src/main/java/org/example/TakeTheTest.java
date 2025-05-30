@@ -44,12 +44,12 @@ public class TakeTheTest extends Bot {
         button2.setCallbackData("false");
         List<InlineKeyboardButton> rowBtn2 = new ArrayList<>();
         rowBtn1True.add(button2);
-        rowsInLine.add(rowBtn1True);
+        rowsInLine.add(rowBtn2);
         var button3 = new InlineKeyboardButton(test[currentQuestionsIndex][3]);
         button3.setCallbackData("false");
         List<InlineKeyboardButton> rowBtn3 = new ArrayList<>();
         rowBtn1True.add(button3);
-        rowsInLine.add(rowBtn1True);
+        rowsInLine.add(rowBtn3);
         var button4 = new InlineKeyboardButton(test[currentQuestionsIndex][4]);
         button4.setCallbackData("false");
         List<InlineKeyboardButton> rowBtn4 = new ArrayList<>();
