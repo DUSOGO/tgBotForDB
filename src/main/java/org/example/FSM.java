@@ -9,7 +9,8 @@ public class FSM {
     public enum UserState {
         IDLE,                        // ничего не делает
         WAITING_QUESTION,            // вводит вопрос
-        WAITING_ANSWERS
+        WAITING_ANSWERS,
+        WAITING_CALLBACK
     }
 
     // Хранит состояния пользователей по chatId

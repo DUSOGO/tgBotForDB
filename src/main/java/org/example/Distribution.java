@@ -16,24 +16,33 @@ public class Distribution extends Bot {
         FSM fsm = new FSM();
         var state = fsm.getState(chatId);
 
+        if (isInteger(msg)){
+            takeTheTest(infoFromMessage);
+        }
         if (state == FSM.UserState.IDLE) {
             switch (msg) {
                 case "/start" -> start();
                 case "/start_using" -> saveUser(infoFromMessage);
                 case "/help" -> listOfCommands();
-                case "/create" -> createTest(infoFromMessage, false);
-                case "/take" -> takeTheTest(infoFromMessage);
-                case "/gamble" -> gamble(chatId, update);
+                case "/create_test" -> createTest(infoFromMessage, false);
+                case "/take_the_test" -> send(chatId, "Отлично! Что бы начать прохождение теста введи код теста(который должен был тебе скинуть друг)");
+                case "/gamble" -> gamble(chatId);
                 default ->
-                        send(chatId, "Я не понял. Мне нужна команда. Посмотреть список команд /help <-(кликабельно(можно нажать))");
+                        send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");
             }
         } else if (state == FSM.UserState.WAITING_QUESTION || state == FSM.UserState.WAITING_ANSWERS){
             createTest(infoFromMessage, true);
         }
     }
 
+    public void handleCallback(CallbackQuery callbackQuery) {
+        long chatId = callbackQuery.getMessage().getChatId();
+        String callbackData = callbackQuery.getData();
+
+    }
+
     private void start() {
-        send(chatId, "");
+        send(chatId, "я это сообщение позже сформулирую, если вы уже проходите тест, значит я забыл это сделать, тогда маякните пжпжпж @propolis3");
         send(chatId, "Вообще по задумке тут можно будет создать тест и делиться ими, и узнавать, сколько правильных ответов");
     }
 
@@ -46,15 +55,9 @@ public class Distribution extends Bot {
     }
 
     private void takeTheTest(Message infoFromMessage) {
+        TakeTheTest f = new TakeTheTest(infoFromMessage);
+        f.sendQuestions();
     }
-
-    public void handleCallback(CallbackQuery callbackQuery) {
-        long chatId = callbackQuery.getMessage().getChatId();
-        String callbackData = callbackQuery.getData();
-
-        gamble(chatId, callbackData);
-    }
-
 
     private void createTest(Message infoFromMessage, boolean isBegin) {
         CreatingTests c = new CreatingTests();
@@ -69,21 +72,23 @@ public class Distribution extends Bot {
         send(chatId, """
                 Список доступных команд:
                 /help (этой ты меня и вызвал)
-                /gamble
+                /gamble ()
                 /start_using (типа регистрация)
-                /create
+                /create_test
+                
                 """);
     }
 
-
-    private void gamble(Long chatId, Update update) {//my edited 2 years old code
-        Gamble gamba = new Gamble(chatId, update);
-        gamba.selectGameMessage();
-    }
-
-    private void gamble(long chatId, String callbackData) {
+    private void gamble(long chatId) {
         Gamble gamba = new Gamble(chatId);
-        gamba.gamba1(callbackData);
     }
 
+    public boolean isInteger(String text) {
+        try {
+            Integer.parseInt(text);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

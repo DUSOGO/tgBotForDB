@@ -25,8 +25,9 @@ public class CreatingTests extends Bot {
         var stateNow = state.getState(chatId);
 
         if (inf.getText().equals("/done")){
-            state.setState(chatId, FSM.UserState.IDLE);
-            send(chatId, "Успешно!");
+            state.reset(chatId);
+            String codeTests = String.valueOf(jdbc.getTestId(chatId));
+            send(chatId, "Успешно! Пройти твой тест могут по коду: " + codeTests);
             return;
         }
         switch (stateNow) {

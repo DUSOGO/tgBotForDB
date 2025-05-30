@@ -3,11 +3,11 @@ package jdbc;
 import jdbc.utils.ConnectionManager;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Optional;
+import java.util.ArrayList;
+
 
 public class JdbcRunner {
 
@@ -72,37 +72,24 @@ public class JdbcRunner {
         executeUpdate(sql);
     }
 
-    public Optional<Integer> getTestIdByChatId(long chatId) {
+    public int getTestId(long chatId) {
         String sql = """
-            SELECT t.id
-            FROM tests t
-            JOIN users u ON t.usid = u.id
-            WHERE u.chat_id = %d
-            """.formatted(chatId);
+        SELECT t.id
+        FROM tests t
+        JOIN users u ON t.usid = u.id
+        WHERE u.chat_id = %d
+        """.formatted(chatId);
 
         try (var conn = ConnectionManager.open();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                return Optional.of(rs.getInt("id"));
+                return rs.getInt("id");
+            } else {
+                throw new IllegalStateException("Test ID not found for chat_id: " + chatId);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
-    }
-
-    public void шmain() {
-        String sql = """
-                select * from users
-                """;
-        try (var connection = ConnectionManager.open();
-             var statement = connection.prepareStatement(sql)) {
-            var result = statement.executeQuery();
-            while (result.next()) {
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Database error while fetching test ID by chat ID", e);
         }
     }
 
@@ -116,6 +103,55 @@ public class JdbcRunner {
             return false;
         } catch (SQLException e) {
             return false;
+        }
+    }
+
+    public String[][] getTest(int testId) {
+        String sql = """
+        SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
+        FROM questions q
+        JOIN answers a ON q.id = a.id
+        WHERE q.teid = %d
+        ORDER BY q.id
+        """.formatted(testId);
+
+        ArrayList<String[]> result = new ArrayList<>();
+        try (var conn = ConnectionManager.open();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                result.add(new String[]{
+                        rs.getString("question"),
+                        rs.getString("answer1_true"),
+                        rs.getString("answer2"),
+                        rs.getString("answer3"),
+                        rs.getString("answer4")
+                });
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при получении вопросов и ответов", e);
+        }
+        return result.toArray(new String[0][0]);
+    }
+
+    public long getChatIdOfTestOwner(int testId) {
+        String sql = """
+        SELECT u.chat_id
+        FROM tests t
+        JOIN users u ON t.usid = u.id
+        WHERE t.id = %d
+        """.formatted(testId);
+
+        try (var conn = ConnectionManager.open();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getLong("chat_id");
+            } else {
+                throw new IllegalStateException("chat_id не найден для testId: " + testId);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при получении chat_id по testId", e);
         }
     }
 }

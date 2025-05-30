@@ -90,6 +90,12 @@ VALUES ((SELECT id FROM tests WHERE usid = (SELECT id FROM users WHERE username 
 INSERT INTO answers (id, answer1_true, answer2, answer3, answer4)
 VALUES ((SELECT id FROM questions WHERE question = 'В каком году была Куликовская битва?'), '1380', '1223', '1415', '1359');
 
+SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
+        FROM questions q
+        JOIN answers a ON q.id = a.id
+        WHERE q.teid = 39
+        ORDER BY q.id
+
 select * from users
 select * from tests
 select * from questions
