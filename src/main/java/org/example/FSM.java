@@ -7,10 +7,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FSM {
     // 1. Описываем состояния пользователя
     public enum UserState {
-        IDLE,                        // ничего не делает
-        WAITING_QUESTION,            // вводит вопрос
-        WAITING_ANSWERS,
-        WAITING_CALLBACK
+        IDLE,                        // wait any command
+        WAITING_QUESTION,            // when the test is creating
+        WAITING_ANSWER_FOR_PERSONAL_TEST, // when the test is creating
+        WAITING_ANSWER_CALLBACK  // WHEN the test is in progress
     }
 
     // Хранит состояния пользователей по chatId

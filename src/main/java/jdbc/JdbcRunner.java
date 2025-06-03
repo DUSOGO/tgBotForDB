@@ -33,7 +33,7 @@ public class JdbcRunner {
         return executeUpdate(sql);
     }
 
-    public boolean addAnswers(String question, String answer1_true, String answer2,String answer3,String answer4) {
+    public boolean addAnswers(String question, String answer1_true, String answer2, String answer3, String answer4) {
         String sql = """
                 INSERT INTO answers (id, answer1_true, answer2, answer3, answer4)
                 VALUES ((SELECT id FROM questions WHERE question = '%s'), '%s', '%s', '%s', '%s');
@@ -44,9 +44,9 @@ public class JdbcRunner {
     public boolean addTest(Message infoFromMessage) {
         String username = infoFromMessage.getFrom().getUserName();
         String sql = """
-            INSERT INTO tests (usid)
-            VALUES ((SELECT id FROM users WHERE username = '%s'));
-            """.formatted(username);
+                INSERT INTO tests (usid)
+                VALUES ((SELECT id FROM users WHERE username = '%s'));
+                """.formatted(username);
 
         if (!executeUpdate(sql)) { // if user don't have test
             deleteTest(infoFromMessage);
@@ -74,11 +74,11 @@ public class JdbcRunner {
 
     public int getTestId(long chatId) {
         String sql = """
-        SELECT t.id
-        FROM tests t
-        JOIN users u ON t.usid = u.id
-        WHERE u.chat_id = %d
-        """.formatted(chatId);
+                SELECT t.id
+                FROM tests t
+                JOIN users u ON t.usid = u.id
+                WHERE u.chat_id = %d
+                """.formatted(chatId);
 
         try (var conn = ConnectionManager.open();
              Statement stmt = conn.createStatement();
@@ -108,12 +108,12 @@ public class JdbcRunner {
 
     public String[][] getTest(int testId) {
         String sql = """
-        SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
-        FROM questions q
-        JOIN answers a ON q.id = a.id
-        WHERE q.teid = %d
-        ORDER BY q.id
-        """.formatted(testId);
+                SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
+                FROM questions q
+                JOIN answers a ON q.id = a.id
+                WHERE q.teid = %d
+                ORDER BY q.id
+                """.formatted(testId);
 
         ArrayList<String[]> result = new ArrayList<>();
         try (var conn = ConnectionManager.open();
@@ -136,11 +136,11 @@ public class JdbcRunner {
 
     public long getChatIdOfTestOwner(int testId) {
         String sql = """
-        SELECT u.chat_id
-        FROM tests t
-        JOIN users u ON t.usid = u.id
-        WHERE t.id = %d
-        """.formatted(testId);
+                SELECT u.chat_id
+                FROM tests t
+                JOIN users u ON t.usid = u.id
+                WHERE t.id = %d
+                """.formatted(testId);
 
         try (var conn = ConnectionManager.open();
              Statement stmt = conn.createStatement();
@@ -152,6 +152,26 @@ public class JdbcRunner {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при получении chat_id по testId", e);
+        }
+    }
+
+    public String getUsernameByChatId(long chatId) {
+        String sql = """
+        SELECT username
+        FROM users
+        WHERE chat_id = %d;
+        """.formatted(chatId);
+
+        try (var conn = ConnectionManager.open();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getString("username");
+            } else {
+                throw new IllegalStateException("username не найден для chatId: " + chatId);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при получении username по chatId", e);
         }
     }
 }

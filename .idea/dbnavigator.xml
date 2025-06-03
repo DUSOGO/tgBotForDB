@@ -49,16 +49,16 @@ usid int references users(id) not null unique
 create table questions (
 id serial primary key,
 teid int references tests(id) on delete cascade not null,
-question varchar(128) not null unique
+question varchar(256) not null unique
 )
 
 
 create table answers (
 id int references questions(id) on delete cascade unique,
-answer1_true varchar(64) not null,
-answer2 char(64) not null,
-answer3 char(64) not null,
-answer4 char(64) not null
+answer1_true varchar(34) not null,
+answer2 char(34) not null,
+answer3 char(34) not null,
+answer4 char(34) not null
 )
 
 
@@ -69,10 +69,6 @@ VALUES ('Иван', 'ivan_test', 123456789);
 -- Вставляем тест
 INSERT INTO tests (usid)
 VALUES ((SELECT id FROM users WHERE username = 'ivan_test'));
-
--- Удаляем тест
-DELETE FROM tests
-WHERE usid = (SELECT id FROM users WHERE username = 'ivan_test');
 
 -- Вставляем вопрос
 INSERT INTO questions (teid, question)
@@ -90,7 +86,8 @@ VALUES ((SELECT id FROM tests WHERE usid = (SELECT id FROM users WHERE username 
 INSERT INTO answers (id, answer1_true, answer2, answer3, answer4)
 VALUES ((SELECT id FROM questions WHERE question = 'В каком году была Куликовская битва?'), '1380', '1223', '1415', '1359');
 
-SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
+-- смотрим на тест
+SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4  
         FROM questions q
         JOIN answers a ON q.id = a.id
         WHERE q.teid = 39

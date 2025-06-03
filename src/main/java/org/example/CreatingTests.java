@@ -34,11 +34,11 @@ public class CreatingTests extends Bot {
             case WAITING_QUESTION -> {
                 jdbc.addQuestion(inf);
                 questionsAndAnswer[0] = inf.getText();
-                send(chatId, "Теперь отправь мне правильный ответ на вопрос (максимум 64 символа)");
-                state.setState(chatId, FSM.UserState.WAITING_ANSWERS);
+                send(chatId, "Теперь отправь мне правильный ответ на вопрос (максимум 34 символа)");
+                state.setState(chatId, FSM.UserState.WAITING_ANSWER_FOR_PERSONAL_TEST);
                 i++;
             }
-            case WAITING_ANSWERS -> {
+            case WAITING_ANSWER_FOR_PERSONAL_TEST -> {
                 switch (i) {
                     case 1 -> {
                         i++;

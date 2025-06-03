@@ -16,34 +16,38 @@ public class Distribution extends Bot {
         FSM fsm = new FSM();
         var state = fsm.getState(chatId);
 
-        if (isInteger(msg)){
-            takeTheTest(infoFromMessage);
-        }
         if (state == FSM.UserState.IDLE) {
             switch (msg) {
                 case "/start" -> start();
                 case "/start_using" -> saveUser(infoFromMessage);
                 case "/help" -> listOfCommands();
                 case "/create_test" -> createTest(infoFromMessage, false);
-                case "/take_the_test" -> send(chatId, "Отлично! Что бы начать прохождение теста введи код теста(который должен был тебе скинуть друг)");
+                case "/take_the_test" ->
+                        send(chatId, "Отлично! Что бы начать прохождение теста введи код, который должен был тебе скинуть друг.\n (Можно не писать эту команду, а сразу скидывать код)");
                 case "/gamble" -> gamble(chatId);
-                default ->
-                        send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");
+                case "/cancel" -> fsm.setState(chatId, FSM.UserState.IDLE); //reset state to idle
+                default -> {
+                    if (isInteger(msg))
+                        takeTheTest(infoFromMessage);
+                    else
+                        send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");}
             }
-        } else if (state == FSM.UserState.WAITING_QUESTION || state == FSM.UserState.WAITING_ANSWERS){
+        } else if (state == FSM.UserState.WAITING_QUESTION || state == FSM.UserState.WAITING_ANSWER_FOR_PERSONAL_TEST) {
             createTest(infoFromMessage, true);
         }
     }
 
     public void handleCallback(CallbackQuery callbackQuery) {
-        long chatId = callbackQuery.getMessage().getChatId();
+        TakeTheTest answer = new TakeTheTest(callbackQuery);
         String callbackData = callbackQuery.getData();
-
+        answer.checkAnswer(callbackData);
     }
 
     private void start() {
-        send(chatId, "я это сообщение позже сформулирую, если вы уже проходите тест, значит я забыл это сделать, тогда маякните пжпжпж @propolis3");
-        send(chatId, "Вообще по задумке тут можно будет создать тест и делиться ими, и узнавать, сколько правильных ответов");
+        send(chatId, """
+                Салют! Это бот, который позволяет создать своё тест и также пройти сторонний.
+                Что бы продолжить - зарегистрируйтесь с помощью команды /start_using <-(можно на неё нажать и она отправится автоматически)
+                """);
     }
 
     private void saveUser(Message infoFromMessage) { // save in database
@@ -72,15 +76,26 @@ public class Distribution extends Bot {
         send(chatId, """
                 Список доступных команд:
                 /help (этой ты меня и вызвал)
-                /gamble ()
-                /start_using (типа регистрация)
-                /create_test
                 
+                /cancel
+                    Отменить действие. Используйте эту команду если вы хотите прервать процесс прохождения или создания.
+                
+                /gamble
+                    отправляет три анимированных эмодзи бла-бла 
+                    
+                /start_using
+                регистрация, 
+                
+                /create_test
+                описание
+                
+                /take_the_test
+                Буквально отправляет сообщение, что бы вы ввели код. (Вы можете сразу отправить код, эта команда не обязательна)
                 """);
     }
 
     private void gamble(long chatId) {
-        Gamble gamba = new Gamble(chatId);
+        Gamble gamble = new Gamble(chatId);
     }
 
     public boolean isInteger(String text) {
