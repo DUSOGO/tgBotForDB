@@ -7,13 +7,14 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class Distribution extends Bot {
     JdbcRunner jdbc = new JdbcRunner();
+    FSM fsm = new FSM();
     private Long chatId;
 
 
     public void messageProcessing(Message infoFromMessage, Update update) {
         String msg = infoFromMessage.getText();
         chatId = infoFromMessage.getChatId();
-        FSM fsm = new FSM();
+
         var state = fsm.getState(chatId);
 
         if (state == FSM.UserState.IDLE) {
@@ -25,9 +26,9 @@ public class Distribution extends Bot {
                 case "/take_the_test" ->
                         send(chatId, "Отлично! Что бы начать прохождение теста введи код, который должен был тебе скинуть друг.\n (Можно не писать эту команду, а сразу скидывать код)");
                 case "/gamble" -> gamble(chatId);
-                case "/cancel" -> fsm.setState(chatId, FSM.UserState.IDLE); //reset state to idle
+                //case "/cancel" -> cancel(); //reset state to idle
                 default -> {
-                    if (isInteger(msg))
+                    if (isInteger(msg)) // && (state != FSM.UserState.WAITING_QUESTION
                         takeTheTest(infoFromMessage);
                     else
                         send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");}
@@ -96,6 +97,10 @@ public class Distribution extends Bot {
 
     private void gamble(long chatId) {
         Gamble gamble = new Gamble(chatId);
+    }
+
+    private void cancel(){
+        fsm.setState(chatId, FSM.UserState.IDLE);
     }
 
     public boolean isInteger(String text) {

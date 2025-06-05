@@ -2,22 +2,19 @@ package org.example;
 
 public class UserSessions {
     private int testCode;
-    private int currentQuestionIndex;
-    private int correctAnswers;
+    private int currentQuestionIndex = 0;
+    private int correctAnswers = 0;
+    private Integer messageId; // Новое поле для хранения id сообщения
 
-    public UserSessions() {
-        this.currentQuestionIndex = 0;
-        this.correctAnswers = 0;
-    }
+    public int getTestCode() {return testCode;}
+    public void setTestCode(int testCode) {this.testCode = testCode;}
 
-    // Геттеры и сеттеры
-    public int getTestCode() { return testCode; }
-    public void setTestCode(int testCode) { this.testCode = testCode; }
+    public int getCurrentQuestionIndex() {return currentQuestionIndex;}
+    public void incrementCurrentQuestionIndex() {this.currentQuestionIndex++;}
 
-    public int getCurrentQuestionIndex() { return currentQuestionIndex; }
-    public void setCurrentQuestionIndex(int idx) { this.currentQuestionIndex = idx; }
-    public void incrementCurrentQuestionIndex() { this.currentQuestionIndex++; }
+    public int getCorrectAnswers() {return correctAnswers;}
+    public void incrementCorrectAnswers() {this.correctAnswers++;}
 
-    public int getCorrectAnswers() { return correctAnswers; }
-    public void incrementCorrectAnswers() { this.correctAnswers++; }
+    public Integer getMessageId() {return messageId;}
+    public void setMessageId(Integer messageId) {this.messageId = messageId;}
 }

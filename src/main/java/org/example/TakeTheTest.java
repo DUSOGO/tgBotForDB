@@ -2,12 +2,15 @@ package org.example;
 
 import jdbc.JdbcRunner;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,9 +50,26 @@ public class TakeTheTest extends Bot {
             return;
         }
         int idx = session.getCurrentQuestionIndex();
-        SendMessage msg = new SendMessage(String.valueOf(chatId), test[idx][0]);
-        msg.setReplyMarkup(buildKeyboard(test, idx));
-        sendMessage(msg);
+        String questionText = test[idx][0];
+        ReplyKeyboard keyboard = buildKeyboard(test, idx);
+
+        Integer lastMsgId = session.getMessageId();
+        if (lastMsgId == null) {
+            // Первый вопрос — отправляем обычное сообщение и сохраняем его id
+            SendMessage msg = new SendMessage(String.valueOf(chatId), questionText);
+            msg.setReplyMarkup(keyboard);
+            Integer sentMsgId = sendMessageAndReturnId(msg);
+            session.setMessageId(sentMsgId);
+        } else {
+            // Следующий вопрос — редактируем прошлое сообщение
+            EditMessageText editMsg = new EditMessageText();
+            editMsg.setChatId(chatId.toString());
+            editMsg.setMessageId(lastMsgId);
+            editMsg.setText(questionText);
+            editMsg.setReplyMarkup((InlineKeyboardMarkup) keyboard);
+            Integer editedMsgId = editMessageAndReturnId(editMsg);
+            session.setMessageId(editedMsgId); // Обычно messageId не меняется
+        }
         session.incrementCurrentQuestionIndex();
         state.setState(chatId, FSM.UserState.WAITING_ANSWER_CALLBACK);
     }
@@ -82,11 +102,28 @@ public class TakeTheTest extends Bot {
         return session.getCurrentQuestionIndex() == test.length;
     }
 
-    private void sendMessage(SendMessage msg) {
+    // Новый метод для отправки сообщения и возврата его id
+    private Integer sendMessageAndReturnId(SendMessage msg) {
         try {
-            execute(msg);
+            Message sentMsg = execute(msg);
+            return sentMsg.getMessageId();
         } catch (TelegramApiException e) {
             System.out.println("Ошибка отправки сообщения: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Новый метод для редактирования сообщения и возврата его id
+    private Integer editMessageAndReturnId(EditMessageText editMsg) {
+        try {
+            Serializable response = execute(editMsg);
+            if (response instanceof Message) {
+                return ((Message) response).getMessageId();
+            } else {
+                return null; // или обработка ошибки
+            }
+        } catch (TelegramApiException e) {
+            System.out.println("Ошибка редактирования сообщения: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -100,7 +137,7 @@ public class TakeTheTest extends Bot {
         buttons.add(correctBtn);
         // Остальные варианты (неправильные)
         for (int i = 2; i <= 4; i++) {
-            InlineKeyboardButton btn = new InlineKeyboardButton(test[idx][i]);
+            InlineKeyboardButton btn = new InlineKeyboardButton(test[idx][i].trim());
             btn.setCallbackData("false");
             buttons.add(btn);
         }
