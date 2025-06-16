@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Random;
 
 public class Bot extends TelegramLongPollingBot {
-    private final String botToken = "7414579672:AAEtjoHeKAkb21FA6kpbamMopcy_X9xeHqk";
-    private final String botUsername = "@testsForYourFriendsBot";
+    private final String botToken = "";
+    private final String botUsername = "";
     //private Long chatId;
 
     @Override
