@@ -37,7 +37,7 @@ public class Bot extends TelegramLongPollingBot {
         if (update.hasMessage()) {
             Message infoFromMessage = update.getMessage();
             // Передаем update с текстовым сообщением в обработчик
-            distribution.messageProcessing(infoFromMessage, update);
+            distribution.messageProcessing(infoFromMessage);
         } else if (update.hasCallbackQuery()) {
             // Обрабатываем обратные вызовы в другом методе
             distribution.handleCallback(update.getCallbackQuery());
@@ -63,8 +63,7 @@ public class Bot extends TelegramLongPollingBot {
                 new BotCommand("/gamble", "кубик, казик, боулинг"),
                 new BotCommand("/start_using", "начать использовать (регистрация типа)"),
                 new BotCommand("/create_test", "Создать тест"),
-                new BotCommand("/take_the_test", "Пройти тест"),
-                new BotCommand("/cancel", "отменить текущее действие (выйти в главное меню, в состояние ожидания)")
+                new BotCommand("/take_the_test", "Пройти тест")
         );
         SetMyCommands setMyCommands = new SetMyCommands();
         setMyCommands.setCommands(commands);
