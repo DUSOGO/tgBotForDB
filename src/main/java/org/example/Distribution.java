@@ -11,7 +11,7 @@ public class Distribution extends Bot {
     private Long chatId;
 
 
-    public void messageProcessing(Message infoFromMessage, Update update) {
+    public void messageProcessing(Message infoFromMessage) {
         String msg = infoFromMessage.getText();
         chatId = infoFromMessage.getChatId();
 
@@ -19,23 +19,41 @@ public class Distribution extends Bot {
 
         if (state == FSM.UserState.IDLE) {
             switch (msg) {
-                case "/start" -> start();
-                case "/start_using" -> saveUser(infoFromMessage);
+                case "/start" -> start(infoFromMessage);
                 case "/help" -> listOfCommands();
                 case "/create_test" -> createTest(infoFromMessage, false);
-                case "/take_the_test" ->
-                        send(chatId, "Отлично! Что бы начать прохождение теста введи код, который должен был тебе скинуть друг.\n (Можно не писать эту команду, а сразу скидывать код)");
+                case "/take_the_test" -> beginTakeTheTest();
                 case "/gamble" -> gamble(chatId);
-                //case "/cancel" -> cancel(); //reset state to idle
-                default -> {
-                    if (isInteger(msg)) // && (state != FSM.UserState.WAITING_QUESTION
-                        takeTheTest(infoFromMessage);
-                    else
-                        send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");}
+                case "/about_bot" -> sendMessageAboutBot();
+                default -> defaultMessageOrCodeTest(infoFromMessage, msg);
             }
         } else if (state == FSM.UserState.WAITING_QUESTION || state == FSM.UserState.WAITING_ANSWER_FOR_PERSONAL_TEST) {
             createTest(infoFromMessage, true);
         }
+    }
+
+    private void sendMessageAboutBot() {
+        send(chatId, """
+                В этом боте вы сможете создать свой тест с неограниченным количеством вопросов, а также пройти уже созданный тест.
+        Немного о том как он работает: Вы пользуетесь командой дя создания теста, и бот запросит у вас сам вопрос, а после правильный вариант ответа, затем и остальные, неверные (всего вариантов ответа 4). После он повторит процедуру. Если не хотите создать новый вопрос и желаете завершить тест -- используйте /done. По завершению создания теста бот отправит вам код, с помощью которого другие люди смогут пройти ваш тест.
+        Что бы пройти тест, вам следует использовать (необязательно) соответствующую команду и ввести код теста. Он есть у его владельца.
+        По прохождению теста вам и создателю теста будут отправлены результаты (количество верных ответов)
+        Вы можете создать только один тест и перезаписать его(поменять текущий на новый) при надобности, воспользовавшись командой для создания теста. Ему будет присвоен отдельный код теста, а предыдущий удалится и не будет работать
+        
+        Этот бот находится в разработке, возможны ошибки или недоработки.
+        Если что вы всегда можете обратиться ко мне в телеграм: @propolis3""");
+    }
+
+    private void defaultMessageOrCodeTest(Message infoFromMessage, String msg) {
+        if (isInteger(msg))
+            takeTheTest(infoFromMessage);
+        else
+            send(chatId, "Чё умный? Бесполезно. На меня только команды действуют. Посмотреть список команд /help <-(кликабельно(можно нажать))");
+    }
+
+    private void beginTakeTheTest() {
+        send(chatId, "Отлично! Что бы начать прохождение теста введи код, который должен был тебе скинуть друг.");
+        fsm.setState(chatId, FSM.UserState.IDLE);
     }
 
     public void handleCallback(CallbackQuery callbackQuery) {
@@ -44,11 +62,22 @@ public class Distribution extends Bot {
         answer.checkAnswer(callbackData);
     }
 
-    private void start() {
+    private void start(Message infoFromMessage) {
+        String name = infoFromMessage.getFrom().getFirstName();
         send(chatId, """
-                Салют! Это бот, который позволяет создать своё тест и также пройти сторонний.
-                Что бы продолжить - зарегистрируйтесь с помощью команды /start_using <-(можно на неё нажать и она отправится автоматически)
-                """);
+                Салют, %s!
+                
+                В этом боте вы сможете создать свой тест с неограниченным количеством вопросов, а также пройти уже созданный тест.
+                Немного о том как он работает: Вы пользуетесь командой дя создания теста, и бот запросит у вас сам вопрос, а после правильный вариант ответа, затем и остальные, неверные (всего вариантов ответа 4). После он повторит процедуру. Если не хотите создать новый вопрос и желаете завершить тест -- используйте /done. По завершению создания теста бот отправит вам код, с помощью которого другие люди смогут пройти ваш тест.
+                Что бы пройти тест, вам следует использовать (необязательно) соответствующую команду и ввести код теста. Он есть у его владельца.
+                По прохождению теста вам и создателю теста будут отправлены результаты (количество верных ответов)
+                Вы можете создать только один тест и перезаписать его(поменять текущий на новый) при надобности, воспользовавшись командой для создания теста. Ему будет присвоен отдельный код теста, а предыдущий удалится и не будет работать
+                
+                Этот бот находится в разработке, возможны ошибки или недоработки.
+                Если что вы всегда можете обратиться ко мне в телеграм: @propolis3
+                """.formatted(name));
+        saveUser(infoFromMessage);
+        listOfCommands();
     }
 
     private void saveUser(Message infoFromMessage) { // save in database
@@ -76,31 +105,26 @@ public class Distribution extends Bot {
     private void listOfCommands() {
         send(chatId, """
                 Список доступных команд:
-                /help (этой ты меня и вызвал)
                 
-                /cancel
-                    Отменить действие. Используйте эту команду если вы хотите прервать процесс прохождения или создания.
+                                /about_bot
+                Отправляет сообщение о боте, как он работает, инструкции, контакт создателя
                 
-                /gamble
-                    отправляет три анимированных эмодзи бла-бла 
-                    
-                /start_using
-                регистрация, 
+                                /help
+                Показывает все доступные команды (этой командой и вызвано данное сообщение)
+                                
+                                /gamble
+                Используйте что бы отправить три анимированных эмодзи со случайным шансом выпадения. Кубик (кость), слоты и боулинг. Развлечение.
                 
-                /create_test
-                описание
+                                /create_test
+                Используйте что бы начать создание теста
                 
-                /take_the_test
-                Буквально отправляет сообщение, что бы вы ввели код. (Вы можете сразу отправить код, эта команда не обязательна)
+                                /take_the_test
+                Используйте что бы начать прохождение теста
                 """);
     }
 
     private void gamble(long chatId) {
         Gamble gamble = new Gamble(chatId);
-    }
-
-    private void cancel(){
-        fsm.setState(chatId, FSM.UserState.IDLE);
     }
 
     public boolean isInteger(String text) {

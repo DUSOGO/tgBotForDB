@@ -93,6 +93,10 @@ SELECT q.question, a.answer1_true, a.answer2, a.answer3, a.answer4
         WHERE q.teid = 39
         ORDER BY q.id
 
+-- удаляем тест
+DELETE FROM tests
+                WHERE usid = (SELECT id FROM users WHERE username = 'propolis3');
+
 select * from users
 select * from tests
 select * from questions

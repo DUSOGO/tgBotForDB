@@ -31,6 +31,7 @@ public class TakeTheTest extends Bot {
         UserSessions session = new UserSessions();
         session.setTestCode(code); // сохраняем код теста в сессию
         userSessions.put(chatId, session);
+        state.setState(chatId, FSM.UserState.WAITING_ANSWER_CALLBACK);
     }
 
     public TakeTheTest(CallbackQuery callback) {
@@ -47,6 +48,7 @@ public class TakeTheTest extends Bot {
         String[][] test = jdbc.getTest(session.getTestCode());
         if (isEmpty(test)) {
             send(chatId, "тест с таким кодом не найден, он, наверное, не правильный");
+            state.setState(chatId, FSM.UserState.IDLE);
             return;
         }
         int idx = session.getCurrentQuestionIndex();
