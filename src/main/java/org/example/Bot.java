@@ -1,5 +1,6 @@
 package org.example;
 
+import jdbc.utils.PropertiesUtil;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -12,12 +13,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class Bot extends TelegramLongPollingBot {
-    private final String botToken = "";
-    private final String botUsername = "";
-    //private Long chatId;
+    private final String botToken = PropertiesUtil.get("bot.token");
+    private final String botUsername = PropertiesUtil.get("bot.username");
 
     @Override
     public String getBotUsername() {
